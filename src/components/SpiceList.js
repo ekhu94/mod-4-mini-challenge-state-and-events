@@ -1,13 +1,48 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import SpiceItem from './SpiceItem'
 
 const SpiceList = props => {
   const [fourStarOnly, setFourStarOnly] = useState(false);
   const [search, setSearch] = useState('');
-  const [liked, setLiked] = useState(false);
+  const [renderedSpices, setRenderedSpices] = useState(props.spices);
+
+  useEffect(() => {
+    if (fourStarOnly) {
+      const spices = renderedSpices.filter(s => {
+        return s.rating === 4;
+      });
+      setRenderedSpices(spices);
+    }
+    const interval = setTimeout(() => {
+      if (search.length) {
+        const spices = renderedSpices.filter(s => {
+          return s.notes.toLowerCase().includes(search.toLowerCase());
+        });
+        setRenderedSpices(spices);
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(interval);
+      setRenderedSpices(props.spices)
+    };
+  }, [search]);
+
+  useEffect(() => {
+    if (fourStarOnly) {
+      const spices = renderedSpices.filter(s => {
+        return s.rating === 4;
+      });
+      setRenderedSpices(spices);
+    }
+
+    return () => {
+      setRenderedSpices(props.spices)
+    };
+  }, [fourStarOnly])
 
   const renderSpices = () => {
-    return props.spices.map(s => {
+    return renderedSpices.map(s => {
       return <SpiceItem key={s.id} spice={s} />
     });
   }
@@ -18,13 +53,18 @@ const SpiceList = props => {
             <div className="filters">
               <div>
                 <label>Search: </label>
-                <input type="text" placeholder="Search By Tasting Notes..." />
+                <input 
+                  type="text" 
+                  placeholder="Search By Tasting Notes..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                />
               </div>
               <label>
                 4 Star Only 
                 <input 
                   type="checkbox"
-                  onChange={ e => console.log(e.target) }
+                  onChange={ () => setFourStarOnly(!fourStarOnly) }
                 />
               </label>
             </div>
